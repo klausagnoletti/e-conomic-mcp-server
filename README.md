@@ -23,6 +23,7 @@ The server reads e-conomic credentials from the environment:
 - `ECONOMIC_APP_SECRET_TOKEN` (required)
 - `ECONOMIC_AGREEMENT_GRANT_TOKEN` (required)
 - `ECONOMIC_BASE_URL` (optional, defaults to `https://restapi.e-conomic.com`)
+- `ECONOMIC_DEBUG` (optional, set to `true` to emit JSON debug logs to stderr)
 
 ### Recommended ways to supply tokens
 
