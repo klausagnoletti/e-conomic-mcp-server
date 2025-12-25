@@ -26,6 +26,63 @@ const invokeTool = async (server, name, input) => {
   return tool.handler(input);
 };
 
+const resolvePlaceholders = (input, context) => {
+  if (input === "$lastDraft") {
+    return context.lastDraftNumber;
+  }
+
+  if (input === "$lastBooked") {
+    return context.lastBookedInvoiceNumber;
+  }
+
+  if (Array.isArray(input)) {
+    return input.map((value) => resolvePlaceholders(value, context));
+  }
+
+  if (input && typeof input === "object") {
+    return Object.fromEntries(
+      Object.entries(input).map(([key, value]) => [
+        key,
+        resolvePlaceholders(value, context),
+      ])
+    );
+  }
+
+  return input;
+};
+
+const captureIdentifiers = (output, context) => {
+  const text = output?.content?.[0]?.text;
+  if (!text) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed?.draftInvoiceNumber) {
+      context.lastDraftNumber = parsed.draftInvoiceNumber;
+    }
+    if (parsed?.bookedInvoiceNumber) {
+      context.lastBookedInvoiceNumber = parsed.bookedInvoiceNumber;
+    }
+  } catch (error) {
+    // Ignore non-JSON tool output.
+  }
+};
+
+const hasNullPlaceholder = (input) => {
+  if (input === null) {
+    return true;
+  }
+  if (Array.isArray(input)) {
+    return input.some(hasNullPlaceholder);
+  }
+  if (input && typeof input === "object") {
+    return Object.values(input).some(hasNullPlaceholder);
+  }
+  return false;
+};
+
 const main = async () => {
   const server = createHarnessServer();
   registerTools(server);
@@ -45,6 +102,11 @@ const main = async () => {
   console.log(`- AppSecretToken: ${tokenSuffix(secretToken)}`);
   console.log(`- AgreementGrantToken: ${tokenSuffix(grantToken)}`);
 
+  const context = {
+    lastDraftNumber: null,
+    lastBookedInvoiceNumber: null,
+  };
+
   const samples = [
     {
       name: "hello",
@@ -53,6 +115,29 @@ const main = async () => {
     {
       name: "list_customers",
       input: { pageSize: 1, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "get_customer",
+      input: { customerNumber: 90001 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "list_products",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "upsert_product",
+      input: {
+        productNumber: "CONSULTING",
+        name: "Consulting Services",
+        salesPrice: 1000,
+        productGroupNumber: 3,
+      },
       envHint:
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
@@ -72,7 +157,7 @@ const main = async () => {
           country: "Denmark",
         },
         currency: "DKK",
-        date: "2025-12-25",
+        date: "2015-06-23",
         lines: [
           {
             description: "Test service",
@@ -85,11 +170,23 @@ const main = async () => {
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
     {
+      name: "list_invoice_drafts",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "get_invoice_draft",
+      input: { draftInvoiceNumber: "$lastDraft" },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
       name: "update_invoice_draft",
       input: {
-        draftInvoiceNumber: 30067,
-        date: "2025-12-26",
-        dueDate: "2026-01-10",
+        draftInvoiceNumber: "$lastDraft",
+        date: "2015-06-24",
+        dueDate: "2015-07-08",
         lines: [
           {
             description: "Test service (updated)",
@@ -98,6 +195,32 @@ const main = async () => {
           },
         ],
       },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "book_invoice_draft",
+      input: {
+        draftInvoiceNumber: "$lastDraft",
+      },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "list_booked_invoices",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "get_booked_invoice",
+      input: { bookedInvoiceNumber: "$lastBooked" },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "download_invoice_pdf",
+      input: { bookedInvoiceNumber: "$lastBooked" },
       envHint:
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
@@ -111,14 +234,38 @@ const main = async () => {
       envHint:
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
+    {
+      name: "list_payment_terms",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "list_customer_groups",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "list_vat_zones",
+      input: { pageSize: 5, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
   ];
 
   for (const sample of samples) {
     console.log(`\n=== Tool: ${sample.name} ===`);
-    console.log("Input:", JSON.stringify(sample.input, null, 2));
+    const resolvedInput = resolvePlaceholders(sample.input, context);
+    if (hasNullPlaceholder(resolvedInput)) {
+      console.log("Input: skipped (missing dependency)");
+      continue;
+    }
+    console.log("Input:", JSON.stringify(resolvedInput, null, 2));
 
     try {
-      const output = await invokeTool(server, sample.name, sample.input);
+      const output = await invokeTool(server, sample.name, resolvedInput);
+      captureIdentifiers(output, context);
       console.log("Output:", JSON.stringify(output, null, 2));
     } catch (error) {
       console.error("Error:", error instanceof Error ? error.message : error);

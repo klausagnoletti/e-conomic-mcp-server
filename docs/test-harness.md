@@ -11,6 +11,12 @@ npm run test:harness
 The harness currently invokes:
 - `hello` (no credentials needed)
 - `list_customers` (requires e-conomic credentials by default)
+- `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
+- `update_customer`
+- `list_products`, `upsert_product`
+- `list_invoice_drafts`, `get_invoice_draft`
+- `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
+- `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
 
 ## Use demo credentials
 
@@ -37,3 +43,4 @@ export ECONOMIC_BASE_URL=https://restapi.e-conomic.com
 
 - The harness logs input/output for each tool.
 - Errors are caught and printed without stopping the rest of the samples.
+- `download_invoice_pdf` returns a base64 payload, which can be large.
