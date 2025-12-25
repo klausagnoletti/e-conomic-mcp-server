@@ -10,7 +10,7 @@ npm run test:harness
 
 The harness currently invokes:
 - `hello` (no credentials needed)
-- `list_customers` (requires e-conomic credentials)
+- `list_customers` (requires e-conomic credentials by default)
 
 ## Use demo credentials
 
@@ -19,6 +19,8 @@ If you want to test against the demo API instead of your own tokens:
 ```bash
 npm run test:harness -- --demo
 ```
+
+Demo mode forces both tokens to `demo` and only supports GET requests.
 
 ## Required environment variables
 
