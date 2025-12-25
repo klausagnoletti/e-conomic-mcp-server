@@ -12,6 +12,14 @@ The harness currently invokes:
 - `hello` (no credentials needed)
 - `list_customers` (requires e-conomic credentials)
 
+## Use demo credentials
+
+If you want to test against the demo API instead of your own tokens:
+
+```bash
+npm run test:harness -- --demo
+```
+
 ## Required environment variables
 
 To test `list_customers`, set these before running the harness:

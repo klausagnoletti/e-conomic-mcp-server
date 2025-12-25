@@ -1,4 +1,11 @@
+import dotenv from "dotenv";
+import { fileURLToPath } from "node:url";
 import registerTools from "../src/tools/index.js";
+
+dotenv.config();
+dotenv.config({
+  path: fileURLToPath(new URL("../.env", import.meta.url)),
+});
 
 const createHarnessServer = () => {
   const tools = [];
@@ -22,6 +29,12 @@ const invokeTool = async (server, name, input) => {
 const main = async () => {
   const server = createHarnessServer();
   registerTools(server);
+  const useDemo = process.argv.includes("--demo");
+
+  if (useDemo) {
+    process.env.ECONOMIC_APP_SECRET_TOKEN = "demo";
+    process.env.ECONOMIC_AGREEMENT_GRANT_TOKEN = "demo";
+  }
 
   const samples = [
     {
@@ -31,7 +44,8 @@ const main = async () => {
     {
       name: "list_customers",
       input: { pageSize: 1, page: 1 },
-      envHint: "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
   ];
 
