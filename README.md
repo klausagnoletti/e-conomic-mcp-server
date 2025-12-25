@@ -24,7 +24,7 @@ The server reads e-conomic credentials from the environment:
 - `ECONOMIC_AGREEMENT_GRANT_TOKEN` (required)
 - `ECONOMIC_BASE_URL` (optional, defaults to `https://restapi.e-conomic.com`)
 
-You'll find all the information on both tokens you need to get started {here}(docs/creating-auth-tokens.md). It's a bit complex but not as boring and annoying as it looks like by first glimpse. Pinky promise!
+You'll find all the information on both tokens you need to get started [here](docs/creating-auth-tokens.md). It's a bit complex but not as boring and annoying as it looks like by first glimpse. Pinky promise!
 
 ### Recommended ways to supply tokens
 
