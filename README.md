@@ -35,40 +35,36 @@ You'll find all the information on both tokens you need to get started [here](do
 
 ## Tools
 
-### Connectivity
+Tool list:
 
-- `hello`: Sanity check to confirm the server is reachable. Input: `{ "name": "YourName" }`. Output: greeting text.
+- Connectivity: `hello`
+- Customers: `list_customers`, `get_customer`, `update_customer`
+- Products: `list_products`, `upsert_product`
+- Draft invoices: `list_invoice_drafts`, `get_invoice_draft`, `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
+- Booked invoices: `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
+- Reference data: `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
 
-### Customers
+### Tool reference
 
-- `list_customers`: List customers with pagination. Input: `{ "pageSize": number, "page": number }`. Output: paginated customer collection.
-- `get_customer`: Fetch one customer by customer number. Input: `{ "customerNumber": number }`. Output: customer details.
-- `update_customer`: Update customer fields. Input: `{ "customerNumber": number, ...fields }`. Output: updated customer object.
-
-### Products
-
-- `list_products`: List products with pagination. Input: `{ "pageSize": number, "page": number }`. Output: paginated product collection.
-- `upsert_product`: Create or update a product. Input: `{ "productNumber": string, "name": string, "salesPrice": number, "productGroupNumber": number, ...optionalFields }`. Output: product object. Note: `productGroupNumber` is required on create.
-
-### Draft invoices
-
-- `list_invoice_drafts`: List draft invoices. Input: `{ "pageSize": number, "page": number }`. Output: paginated draft collection.
-- `get_invoice_draft`: Fetch a draft by draft invoice number. Input: `{ "draftInvoiceNumber": number }`. Output: draft invoice details.
-- `create_invoice_draft`: Create a new draft invoice. Input: `{ "customerNumber": number, "currency": "DKK", "date": "YYYY-MM-DD", "lines": [...], "createCustomerIfMissing": boolean, "newCustomer": {...} }`. Output: created draft. Note: If a line omits `productNumber`, it defaults to `"1"` to match your current invoicing pattern. If `createCustomerIfMissing` is true and the customer does not exist, a new customer is created from `newCustomer`.
-- `update_invoice_draft`: Update a draft invoice. Input: `{ "draftInvoiceNumber": number, ...fields }`. Output: updated draft invoice.
-- `book_invoice_draft`: Book a draft into a booked invoice. Input: `{ "draftInvoiceNumber": number }`. Output: booked invoice payload.
-
-### Booked invoices
-
-- `list_booked_invoices`: List booked invoices. Input: `{ "pageSize": number, "page": number }`. Output: paginated booked invoice collection.
-- `get_booked_invoice`: Fetch a booked invoice by invoice number. Input: `{ "bookedInvoiceNumber": number }`. Output: booked invoice details.
-- `download_invoice_pdf`: Download booked invoice PDF as base64. Input: `{ "bookedInvoiceNumber": number }`. Output: `{ "base64": "..." }`.
-
-### Reference data
-
-- `list_payment_terms`: List payment terms. Input: `{ "pageSize": number, "page": number }`. Output: payment terms collection.
-- `list_customer_groups`: List customer groups. Input: `{ "pageSize": number, "page": number }`. Output: customer groups collection.
-- `list_vat_zones`: List VAT zones. Input: `{ "pageSize": number, "page": number }`. Output: VAT zones collection.
+| Category | Tool | Purpose | Arguments | Returns / Notes |
+| --- | --- | --- | --- | --- |
+| Connectivity | `hello` | Sanity check to confirm the server is reachable. | `{ "name": "YourName" }` | Greeting text. |
+| Customers | `list_customers` | List customers with pagination. | `{ "pageSize": number, "page": number }` | Paginated customer collection. |
+| Customers | `get_customer` | Fetch one customer by customer number. | `{ "customerNumber": number }` | Customer details. |
+| Customers | `update_customer` | Update customer fields. | `{ "customerNumber": number, ...fields }` | Updated customer object. |
+| Products | `list_products` | List products with pagination. | `{ "pageSize": number, "page": number }` | Paginated product collection. |
+| Products | `upsert_product` | Create or update a product. | `{ "productNumber": string, "name": string, "salesPrice": number, "productGroupNumber": number, ...optionalFields }` | Product object. `productGroupNumber` is required on create. |
+| Draft invoices | `list_invoice_drafts` | List draft invoices with pagination. | `{ "pageSize": number, "page": number }` | Paginated draft collection. |
+| Draft invoices | `get_invoice_draft` | Fetch a draft invoice. | `{ "draftInvoiceNumber": number }` | Draft invoice details. |
+| Draft invoices | `create_invoice_draft` | Create a new draft invoice. | `{ "customerNumber": number, "currency": "DKK", "date": "YYYY-MM-DD", "lines": [...], "createCustomerIfMissing": boolean, "newCustomer": {...} }` | Created draft. If a line omits `productNumber`, it defaults to `"1"`. If `createCustomerIfMissing` is true and the customer does not exist, a new customer is created from `newCustomer`. |
+| Draft invoices | `update_invoice_draft` | Update a draft invoice. | `{ "draftInvoiceNumber": number, ...fields }` | Updated draft invoice. |
+| Draft invoices | `book_invoice_draft` | Book a draft into a booked invoice. | `{ "draftInvoiceNumber": number }` | Booked invoice payload. |
+| Booked invoices | `list_booked_invoices` | List booked invoices with pagination. | `{ "pageSize": number, "page": number }` | Paginated booked invoice collection. |
+| Booked invoices | `get_booked_invoice` | Fetch a booked invoice. | `{ "bookedInvoiceNumber": number }` | Booked invoice details. |
+| Booked invoices | `download_invoice_pdf` | Download a booked invoice PDF. | `{ "bookedInvoiceNumber": number }` | `{ "base64": "..." }`. |
+| Reference data | `list_payment_terms` | List payment terms. | `{ "pageSize": number, "page": number }` | Payment terms collection. |
+| Reference data | `list_customer_groups` | List customer groups. | `{ "pageSize": number, "page": number }` | Customer groups collection. |
+| Reference data | `list_vat_zones` | List VAT zones. | `{ "pageSize": number, "page": number }` | VAT zones collection. |
 
 ## MCP client setup
 
