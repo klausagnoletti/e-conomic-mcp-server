@@ -1,3 +1,5 @@
+import { logDebug } from "../utils/logger.js";
+
 const DEFAULT_BASE_URL = "https://restapi.e-conomic.com";
 
 export class EconomicApiError extends Error {
@@ -41,8 +43,7 @@ const buildHeaders = () => {
 export const request = async (method, path, body) => {
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}${path}`;
-
-  console.info(`[economic] ${method} ${path}`);
+  logDebug("request", { method, path });
 
   const response = await fetch(url, {
     method,
