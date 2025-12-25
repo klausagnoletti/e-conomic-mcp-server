@@ -1,41 +1,5 @@
 import { z } from "zod";
-
-const ECONOMIC_BASE_URL =
-  process.env.ECONOMIC_BASE_URL?.replace(/\/$/, "") ??
-  "https://restapi.e-conomic.com";
-const ECONOMIC_APP_SECRET_TOKEN = process.env.ECONOMIC_APP_SECRET_TOKEN;
-const ECONOMIC_AGREEMENT_GRANT_TOKEN = process.env.ECONOMIC_AGREEMENT_GRANT_TOKEN;
-
-const defaultHeaders = () => {
-  if (!ECONOMIC_APP_SECRET_TOKEN || !ECONOMIC_AGREEMENT_GRANT_TOKEN) {
-    throw new Error(
-      "Missing ECONOMIC_APP_SECRET_TOKEN or ECONOMIC_AGREEMENT_GRANT_TOKEN environment variables."
-    );
-  }
-
-  return {
-    "Content-Type": "application/json",
-    "X-AppSecretToken": ECONOMIC_APP_SECRET_TOKEN,
-    "X-AgreementGrantToken": ECONOMIC_AGREEMENT_GRANT_TOKEN,
-  };
-};
-
-const economicRequest = async (path, { method = "GET", body } = {}) => {
-  const response = await fetch(`${ECONOMIC_BASE_URL}${path}`, {
-    method,
-    headers: defaultHeaders(),
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `e-conomic API request failed (${response.status}): ${errorText}`
-    );
-  }
-
-  return response.json();
-};
+import { EconomicApiError, request } from "../economic/api-client.js";
 
 export const registerListCustomersTool = (server) => {
   server.registerTool(
@@ -68,16 +32,41 @@ export const registerListCustomersTool = (server) => {
         skippages: String(skipPages),
       });
 
-      const data = await economicRequest(`/customers?${query.toString()}`);
+      try {
+        const data = await request("GET", `/customers?${query.toString()}`);
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(data, null, 2),
-          },
-        ],
-      };
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(data, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        if (error instanceof EconomicApiError) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    error: error.message,
+                    status: error.status,
+                    errorCode: error.errorCode,
+                    hint: error.hint,
+                    details: error.details,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        throw error;
+      }
     }
   );
 };
