@@ -31,113 +31,42 @@ The server reads e-conomic credentials from the environment:
 - **Desktop MCP clients**: either start the server from a shell that has `.env` loaded, or pass env variables in the client config if you want the client to spawn the server for you.
 - **CI/shared environments**: use your secret manager (GitHub Actions secrets, etc.) and inject env vars at runtime. Do not commit `.env`.
 
-## Tool examples
-
 ## Tools
 
-- `hello`
-- `list_customers`
-- `get_customer`
-- `list_products`
-- `upsert_product`
-- `list_invoice_drafts`
-- `get_invoice_draft`
-- `create_invoice_draft`
-- `update_invoice_draft`
-- `book_invoice_draft`
-- `list_booked_invoices`
-- `get_booked_invoice`
-- `download_invoice_pdf`
-- `update_customer`
-- `list_payment_terms`
-- `list_customer_groups`
-- `list_vat_zones`
+### Connectivity
 
-## Tool examples
+- `hello`: Sanity check to confirm the server is reachable. Input: `{ "name": "YourName" }`. Output: greeting text.
 
-### create_invoice_draft
+### Customers
 
-Example payload:
+- `list_customers`: List customers with pagination. Input: `{ "pageSize": number, "page": number }`. Output: paginated customer collection.
+- `get_customer`: Fetch one customer by customer number. Input: `{ "customerNumber": number }`. Output: customer details.
+- `update_customer`: Update customer fields. Input: `{ "customerNumber": number, ...fields }`. Output: updated customer object.
 
-```json
-{
-  "customerNumber": 1,
-  "createCustomerIfMissing": true,
-  "newCustomer": {
-    "name": "Acme ApS",
-    "currency": "DKK",
-    "paymentTermsNumber": 1,
-    "customerGroupNumber": 1,
-    "vatZoneNumber": 1
-  },
-  "currency": "DKK",
-  "date": "2025-12-25",
-  "lines": [
-    {
-      "description": "Consulting",
-      "quantity": 1,
-      "unitPrice": 1000
-    }
-  ]
-}
-```
+### Products
 
-Note: If `productNumber` is omitted on a line, the tool defaults it to `"1"` to match your existing invoicing pattern.
+- `list_products`: List products with pagination. Input: `{ "pageSize": number, "page": number }`. Output: paginated product collection.
+- `upsert_product`: Create or update a product. Input: `{ "productNumber": string, "name": string, "salesPrice": number, "productGroupNumber": number, ...optionalFields }`. Output: product object. Note: `productGroupNumber` is required on create.
 
-### update_invoice_draft
+### Draft invoices
 
-Example payload:
+- `list_invoice_drafts`: List draft invoices. Input: `{ "pageSize": number, "page": number }`. Output: paginated draft collection.
+- `get_invoice_draft`: Fetch a draft by draft invoice number. Input: `{ "draftInvoiceNumber": number }`. Output: draft invoice details.
+- `create_invoice_draft`: Create a new draft invoice. Input: `{ "customerNumber": number, "currency": "DKK", "date": "YYYY-MM-DD", "lines": [...], "createCustomerIfMissing": boolean, "newCustomer": {...} }`. Output: created draft. Note: If a line omits `productNumber`, it defaults to `"1"` to match your current invoicing pattern. If `createCustomerIfMissing` is true and the customer does not exist, a new customer is created from `newCustomer`.
+- `update_invoice_draft`: Update a draft invoice. Input: `{ "draftInvoiceNumber": number, ...fields }`. Output: updated draft invoice.
+- `book_invoice_draft`: Book a draft into a booked invoice. Input: `{ "draftInvoiceNumber": number }`. Output: booked invoice payload.
 
-```json
-{
-  "draftInvoiceNumber": 30067,
-  "date": "2025-12-26",
-  "dueDate": "2026-01-10",
-  "lines": [
-    {
-      "description": "Consulting",
-      "quantity": 2,
-      "unitPrice": 1000
-    }
-  ]
-}
-```
+### Booked invoices
 
-### book_invoice_draft
+- `list_booked_invoices`: List booked invoices. Input: `{ "pageSize": number, "page": number }`. Output: paginated booked invoice collection.
+- `get_booked_invoice`: Fetch a booked invoice by invoice number. Input: `{ "bookedInvoiceNumber": number }`. Output: booked invoice details.
+- `download_invoice_pdf`: Download booked invoice PDF as base64. Input: `{ "bookedInvoiceNumber": number }`. Output: `{ "base64": "..." }`.
 
-Example payload:
+### Reference data
 
-```json
-{
-  "draftInvoiceNumber": 30067
-}
-```
-
-### upsert_product
-
-Example payload:
-
-```json
-{
-  "productNumber": "CONSULTING",
-  "name": "Consulting Services",
-  "salesPrice": 1000,
-  "productGroupNumber": 3
-}
-```
-
-### update_customer
-
-Example payload:
-
-```json
-{
-  "customerNumber": 90001,
-  "name": "Sandbox Test Customer Updated",
-  "email": "billing@example.com",
-  "paymentTermsNumber": 1
-}
-```
+- `list_payment_terms`: List payment terms. Input: `{ "pageSize": number, "page": number }`. Output: payment terms collection.
+- `list_customer_groups`: List customer groups. Input: `{ "pageSize": number, "page": number }`. Output: customer groups collection.
+- `list_vat_zones`: List VAT zones. Input: `{ "pageSize": number, "page": number }`. Output: VAT zones collection.
 
 ## MCP client setup
 
@@ -223,35 +152,4 @@ Settings files are located at `~/.gemini/settings.json` (user) or `<project>/.ge
 
 ## License
 
-MIT
-### update_invoice_draft
-
-Example payload:
-
-```json
-{
-  "draftInvoiceNumber": 30067,
-  "date": "2025-12-26",
-  "dueDate": "2026-01-10",
-  "lines": [
-    {
-      "description": "Consulting",
-      "quantity": 2,
-      "unitPrice": 1000
-    }
-  ]
-}
-```
-
-### update_customer
-
-Example payload:
-
-```json
-{
-  "customerNumber": 90001,
-  "name": "Sandbox Test Customer Updated",
-  "email": "billing@example.com",
-  "paymentTermsNumber": 1
-}
-```
+MIT License. See `LICENSE` for details.
