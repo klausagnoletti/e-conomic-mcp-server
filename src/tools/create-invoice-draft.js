@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { EconomicApiError, request } from "../economic/api-client.js";
 
+const DEFAULT_PRODUCT_NUMBER = "1";
+
 const lineSchema = z.object({
   description: z.string().min(1).describe("Line description"),
   quantity: z.number().positive().describe("Quantity"),
@@ -15,6 +17,43 @@ const lineSchema = z.object({
     .describe("Optional discount percentage"),
 });
 
+const newCustomerSchema = z.object({
+  name: z.string().min(1).describe("Customer name"),
+  currency: z
+    .string()
+    .length(3)
+    .optional()
+    .describe("Customer currency (ISO 4217)"),
+  paymentTermsNumber: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Payment terms number"),
+  customerGroupNumber: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Customer group number"),
+  vatZoneNumber: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("VAT zone number"),
+  address: z.string().optional(),
+  zip: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  email: z.string().email().optional(),
+  telephoneAndFaxNumber: z.string().optional(),
+  attention: z.string().optional(),
+  ean: z.string().optional(),
+  cvr: z.string().optional(),
+  website: z.string().optional(),
+});
+
 const buildLine = (line, index) => {
   const payload = {
     lineNumber: index + 1,
@@ -24,12 +63,14 @@ const buildLine = (line, index) => {
     unitNetPrice: line.unitPrice,
   };
 
+  const resolvedProductNumber = line.productNumber ?? DEFAULT_PRODUCT_NUMBER;
+
   if (line.discountPercentage !== undefined) {
     payload.discountPercentage = line.discountPercentage;
   }
 
-  if (line.productNumber) {
-    payload.product = { productNumber: line.productNumber };
+  if (resolvedProductNumber) {
+    payload.product = { productNumber: resolvedProductNumber };
   }
 
   if (line.unitNumber) {
@@ -37,6 +78,76 @@ const buildLine = (line, index) => {
   }
 
   return payload;
+};
+
+const ensureCustomer = async ({
+  customerNumber,
+  currency,
+  createCustomerIfMissing,
+  newCustomer,
+}) => {
+  try {
+    await request("GET", `/customers/${customerNumber}`);
+    return;
+  } catch (error) {
+    if (!(error instanceof EconomicApiError) || error.status !== 404) {
+      throw error;
+    }
+
+    if (!createCustomerIfMissing) {
+      throw error;
+    }
+
+    if (!newCustomer) {
+      throw new EconomicApiError(
+        "Customer does not exist. Provide newCustomer details to create it.",
+        { status: 404, errorCode: "E_CUSTOMER_MISSING" }
+      );
+    }
+
+    const payload = {
+      customerNumber,
+      name: newCustomer.name,
+      currency: (newCustomer.currency ?? currency)?.toUpperCase(),
+    };
+
+    if (newCustomer.paymentTermsNumber) {
+      payload.paymentTerms = {
+        paymentTermsNumber: newCustomer.paymentTermsNumber,
+      };
+    }
+
+    if (newCustomer.customerGroupNumber) {
+      payload.customerGroup = {
+        customerGroupNumber: newCustomer.customerGroupNumber,
+      };
+    }
+
+    if (newCustomer.vatZoneNumber) {
+      payload.vatZone = { vatZoneNumber: newCustomer.vatZoneNumber };
+    }
+
+    const optionalFields = [
+      "address",
+      "zip",
+      "city",
+      "country",
+      "email",
+      "telephoneAndFaxNumber",
+      "attention",
+      "ean",
+      "cvr",
+      "website",
+    ];
+
+    for (const field of optionalFields) {
+      if (newCustomer[field]) {
+        payload[field] = newCustomer[field];
+      }
+    }
+
+    await request("POST", "/customers", payload);
+  }
 };
 
 const fetchInvoiceTemplate = async (customerNumber, currency) => {
@@ -63,6 +174,13 @@ export const registerCreateInvoiceDraftTool = (server) => {
           .int()
           .positive()
           .describe("Customer number in e-conomic"),
+        createCustomerIfMissing: z
+          .boolean()
+          .optional()
+          .describe("Create customer if it does not exist"),
+        newCustomer: newCustomerSchema
+          .optional()
+          .describe("Customer payload when creating a missing customer"),
         currency: z
           .string()
           .length(3)
@@ -85,6 +203,8 @@ export const registerCreateInvoiceDraftTool = (server) => {
     },
     async ({
       customerNumber,
+      createCustomerIfMissing,
+      newCustomer,
       currency,
       date,
       lines,
@@ -95,6 +215,13 @@ export const registerCreateInvoiceDraftTool = (server) => {
       dueDate,
     }) => {
       try {
+        await ensureCustomer({
+          customerNumber,
+          currency,
+          createCustomerIfMissing,
+          newCustomer,
+        });
+
         let payload;
         const needsTemplate =
           !layoutNumber ||

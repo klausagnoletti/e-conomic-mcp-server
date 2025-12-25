@@ -36,6 +36,15 @@ const main = async () => {
     process.env.ECONOMIC_AGREEMENT_GRANT_TOKEN = "demo";
   }
 
+  const secretToken = process.env.ECONOMIC_APP_SECRET_TOKEN?.trim();
+  const grantToken = process.env.ECONOMIC_AGREEMENT_GRANT_TOKEN?.trim();
+  const tokenSuffix = (value) =>
+    value ? `${value.slice(-4)} (len ${value.length})` : "missing";
+
+  console.log("Token check:");
+  console.log(`- AppSecretToken: ${tokenSuffix(secretToken)}`);
+  console.log(`- AgreementGrantToken: ${tokenSuffix(grantToken)}`);
+
   const samples = [
     {
       name: "hello",
@@ -44,6 +53,61 @@ const main = async () => {
     {
       name: "list_customers",
       input: { pageSize: 1, page: 1 },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "create_invoice_draft",
+      input: {
+        customerNumber: 90001,
+        createCustomerIfMissing: true,
+        newCustomer: {
+          name: "Sandbox Test Customer",
+          currency: "DKK",
+          paymentTermsNumber: 1,
+          customerGroupNumber: 1,
+          vatZoneNumber: 1,
+          email: "sandbox-test@example.com",
+          city: "Copenhagen",
+          country: "Denmark",
+        },
+        currency: "DKK",
+        date: "2025-12-25",
+        lines: [
+          {
+            description: "Test service",
+            quantity: 1,
+            unitPrice: 100,
+          },
+        ],
+      },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "update_invoice_draft",
+      input: {
+        draftInvoiceNumber: 30067,
+        date: "2025-12-26",
+        dueDate: "2026-01-10",
+        lines: [
+          {
+            description: "Test service (updated)",
+            quantity: 2,
+            unitPrice: 120,
+          },
+        ],
+      },
+      envHint:
+        "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
+    },
+    {
+      name: "update_customer",
+      input: {
+        customerNumber: 90001,
+        name: "Sandbox Test Customer Updated",
+        email: "billing@example.com",
+      },
       envHint:
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
