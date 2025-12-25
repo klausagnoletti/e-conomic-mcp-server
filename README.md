@@ -22,6 +22,12 @@ The server reads e-conomic credentials from the environment:
 - `ECONOMIC_AGREEMENT_GRANT_TOKEN` (required)
 - `ECONOMIC_BASE_URL` (optional, defaults to `https://restapi.e-conomic.com`)
 
+### Recommended ways to supply tokens
+
+- **Local development**: keep secrets in `.env` and run `npm start` from the repo root so `dotenv` loads them.
+- **Desktop MCP clients**: either start the server from a shell that has `.env` loaded, or pass env variables in the client config if you want the client to spawn the server for you.
+- **CI/shared environments**: use your secret manager (GitHub Actions secrets, etc.) and inject env vars at runtime. Do not commit `.env`.
+
 ## Tool examples
 
 ## Tools
