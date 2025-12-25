@@ -1,5 +1,7 @@
 # e-conomic-mcp-server
 
+Perfect for anyone who, like me, is more geek than bookkeeper. Finally there is a bit of fun in bookkeeping. Who would have thought.
+
 ## Getting started
 
 Install dependencies:
