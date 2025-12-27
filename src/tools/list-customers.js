@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { EconomicApiError, request } from "../economic/api-client.js";
+import { request } from "../economic/api-client.js";
+import { errorToContent } from "./tool-helpers.js";
 
 export const registerListCustomersTool = (server) => {
   server.registerTool(
@@ -44,28 +45,7 @@ export const registerListCustomersTool = (server) => {
           ],
         };
       } catch (error) {
-        if (error instanceof EconomicApiError) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(
-                  {
-                    error: error.message,
-                    status: error.status,
-                    errorCode: error.errorCode,
-                    hint: error.hint,
-                    details: error.details,
-                  },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        }
-
-        throw error;
+        return errorToContent(error);
       }
     }
   );

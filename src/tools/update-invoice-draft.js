@@ -1,13 +1,24 @@
 import { z } from "zod";
-import { EconomicApiError, request } from "../economic/api-client.js";
+import { request } from "../economic/api-client.js";
+import { errorToContent } from "./tool-helpers.js";
 
 const DEFAULT_PRODUCT_NUMBER = "1";
 
 const lineSchema = z.object({
-  description: z.string().min(1).describe("Line description"),
+  description: z
+    .string()
+    .min(1)
+    .max(2000)
+    .transform((s) => s.trim())
+    .describe("Line description"),
   quantity: z.number().positive().describe("Quantity"),
   unitPrice: z.number().describe("Unit net price"),
-  productNumber: z.string().min(1).optional().describe("Optional product number"),
+  productNumber: z
+    .string()
+    .min(1)
+    .max(50)
+    .optional()
+    .describe("Optional product number"),
   unitNumber: z.number().int().positive().optional().describe("Optional unit number"),
   discountPercentage: z
     .number()
@@ -76,7 +87,12 @@ export const registerUpdateInvoiceDraftTool = (server) => {
           .transform((value) => (value ? value.toUpperCase() : value)),
         paymentTermsNumber: z.number().int().positive().optional(),
         layoutNumber: z.number().int().positive().optional(),
-        recipientName: z.string().min(1).optional(),
+        recipientName: z
+          .string()
+          .min(1)
+          .max(250)
+          .transform((s) => s.trim())
+          .optional(),
         recipientVatZoneNumber: z.number().int().positive().optional(),
         lines: z.array(lineSchema).min(1).optional().describe("Invoice lines"),
       }),
@@ -93,7 +109,23 @@ export const registerUpdateInvoiceDraftTool = (server) => {
       lines,
     }) => {
       try {
-        const payload = await fetchDraft(draftInvoiceNumber);
+        const current = await fetchDraft(draftInvoiceNumber);
+
+        // Build payload explicitly from known safe fields only
+        const payload = {
+          draftInvoiceNumber: current.draftInvoiceNumber,
+          date: current.date,
+          currency: current.currency,
+          customer: current.customer,
+          recipient: current.recipient,
+          layout: current.layout,
+          paymentTerms: current.paymentTerms,
+          lines: current.lines,
+        };
+
+        if (current.dueDate) {
+          payload.dueDate = current.dueDate;
+        }
 
         if (date) {
           payload.date = date;
@@ -155,28 +187,7 @@ export const registerUpdateInvoiceDraftTool = (server) => {
           ],
         };
       } catch (error) {
-        if (error instanceof EconomicApiError) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(
-                  {
-                    error: error.message,
-                    status: error.status,
-                    errorCode: error.errorCode,
-                    hint: error.hint,
-                    details: error.details,
-                  },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        }
-
-        throw error;
+        return errorToContent(error);
       }
     }
   );

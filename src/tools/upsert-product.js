@@ -3,11 +3,21 @@ import { EconomicApiError, request } from "../economic/api-client.js";
 import { errorToContent } from "./tool-helpers.js";
 
 const productSchema = z.object({
-  productNumber: z.string().min(1).describe("Product number"),
-  name: z.string().min(1).describe("Product name"),
+  productNumber: z
+    .string()
+    .min(1)
+    .max(50)
+    .transform((s) => s.trim())
+    .describe("Product number"),
+  name: z
+    .string()
+    .min(1)
+    .max(250)
+    .transform((s) => s.trim())
+    .describe("Product name"),
   salesPrice: z.number().nonnegative().optional().describe("Sales price"),
   costPrice: z.number().nonnegative().optional().describe("Cost price"),
-  barCode: z.string().optional().describe("Barcode"),
+  barCode: z.string().max(100).optional().describe("Barcode"),
   unitNumber: z.number().int().positive().optional().describe("Unit number"),
   productGroupNumber: z
     .number()
