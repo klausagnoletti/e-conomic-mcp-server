@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test:harness": "node scripts/test-harness.js",
-    "test": "npm run test:harness"
+    "test": "npm run test:harness",
+    "openapi:download": "node scripts/openapi-download.js"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +16,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.0"
   }
 }
