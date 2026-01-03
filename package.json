@@ -8,6 +8,7 @@
     "test:harness": "node scripts/test-harness.js",
     "test": "npm run test:harness",
     "openapi:download": "node scripts/openapi-download.js"
+    ,"test:sanity": "node scripts/test-sanity.js"
   },
   "keywords": [],
   "author": "",

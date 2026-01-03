@@ -16,6 +16,12 @@ Run the server:
 npm start
 ```
 
+Quick sanity test (uses demo tokens if none set):
+
+```bash
+npm run test:sanity
+```
+
 ## Environment variables
 
 The server reads e-conomic credentials from the environment:
