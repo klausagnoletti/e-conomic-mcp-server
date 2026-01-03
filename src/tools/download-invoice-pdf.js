@@ -2,6 +2,8 @@ import { z } from "zod";
 import { request, validateCredentials } from "../economic/api-client.js";
 import { errorToContent } from "./tool-helpers.js";
 
+const MAX_PDF_SIZE = 50 * 1024 * 1024; // 50MB limit
+
 const buildPdfUrl = (bookedInvoiceNumber) =>
   `/invoices/booked/${bookedInvoiceNumber}/pdf`;
 
@@ -33,6 +35,7 @@ export const registerDownloadInvoicePdfTool = (server) => {
             "X-AppSecretToken": appSecretToken,
             "X-AgreementGrantToken": agreementGrantToken,
           },
+          signal: AbortSignal.timeout(30000),
         });
 
         if (!response.ok) {
@@ -52,8 +55,26 @@ export const registerDownloadInvoicePdfTool = (server) => {
                     error: errorPayload?.message ?? "Failed to fetch PDF.",
                     status: response.status,
                     errorCode: errorPayload?.errorCode,
-                    hint: errorPayload?.developerHint,
-                    details: errorPayload,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        const contentLength = response.headers.get("content-length");
+        if (contentLength && parseInt(contentLength) > MAX_PDF_SIZE) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    error: `PDF too large: ${contentLength} bytes (max: ${MAX_PDF_SIZE} bytes)`,
+                    status: 413,
+                    errorCode: "E_PDF_TOO_LARGE",
                   },
                   null,
                   2
@@ -64,6 +85,27 @@ export const registerDownloadInvoicePdfTool = (server) => {
         }
 
         const arrayBuffer = await response.arrayBuffer();
+
+        // Double-check actual size after download
+        if (arrayBuffer.byteLength > MAX_PDF_SIZE) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    error: `PDF too large: ${arrayBuffer.byteLength} bytes (max: ${MAX_PDF_SIZE} bytes)`,
+                    status: 413,
+                    errorCode: "E_PDF_TOO_LARGE",
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
         const base64 = Buffer.from(arrayBuffer).toString("base64");
 
         return {

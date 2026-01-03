@@ -1,13 +1,24 @@
 import { z } from "zod";
 import { EconomicApiError, request } from "../economic/api-client.js";
+import { errorToContent } from "./tool-helpers.js";
 
 const DEFAULT_PRODUCT_NUMBER = "1";
 
 const lineSchema = z.object({
-  description: z.string().min(1).describe("Line description"),
+  description: z
+    .string()
+    .min(1)
+    .max(2000)
+    .transform((s) => s.trim())
+    .describe("Line description"),
   quantity: z.number().positive().describe("Quantity"),
   unitPrice: z.number().describe("Unit net price"),
-  productNumber: z.string().min(1).optional().describe("Optional product number"),
+  productNumber: z
+    .string()
+    .min(1)
+    .max(50)
+    .optional()
+    .describe("Optional product number"),
   unitNumber: z.number().int().positive().optional().describe("Optional unit number"),
   discountPercentage: z
     .number()
@@ -18,7 +29,12 @@ const lineSchema = z.object({
 });
 
 const newCustomerSchema = z.object({
-  name: z.string().min(1).describe("Customer name"),
+  name: z
+    .string()
+    .min(1)
+    .max(250)
+    .transform((s) => s.trim())
+    .describe("Customer name"),
   currency: z
     .string()
     .length(3)
@@ -42,16 +58,23 @@ const newCustomerSchema = z.object({
     .positive()
     .optional()
     .describe("VAT zone number"),
-  address: z.string().optional(),
-  zip: z.string().optional(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-  email: z.string().email().optional(),
-  telephoneAndFaxNumber: z.string().optional(),
-  attention: z.string().optional(),
-  ean: z.string().optional(),
-  cvr: z.string().optional(),
-  website: z.string().optional(),
+  address: z.string().max(500).optional(),
+  zip: z.string().max(20).optional(),
+  city: z.string().max(100).optional(),
+  country: z.string().max(100).optional(),
+  email: z.string().email().max(254).toLowerCase().optional(),
+  telephoneAndFaxNumber: z.string().max(50).optional(),
+  attention: z.string().max(250).optional(),
+  ean: z.string().max(20).optional(),
+  cvr: z.string().max(20).optional(),
+  website: z
+    .string()
+    .url()
+    .max(500)
+    .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+      message: "Website must be a valid HTTP/HTTPS URL",
+    })
+    .optional(),
 });
 
 const buildLine = (line, index) => {
@@ -293,28 +316,7 @@ export const registerCreateInvoiceDraftTool = (server) => {
           ],
         };
       } catch (error) {
-        if (error instanceof EconomicApiError) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(
-                  {
-                    error: error.message,
-                    status: error.status,
-                    errorCode: error.errorCode,
-                    hint: error.hint,
-                    details: error.details,
-                  },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        }
-
-        throw error;
+        return errorToContent(error);
       }
     }
   );

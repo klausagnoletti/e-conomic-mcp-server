@@ -1,6 +1,7 @@
 import { logDebug } from "../utils/logger.js";
 
 const DEFAULT_BASE_URL = "https://restapi.e-conomic.com";
+const ALLOWED_BASE_URL_PATTERN = /^https:\/\/restapi\.e-conomic\.com(:\d+)?$/;
 
 export class EconomicApiError extends Error {
   constructor(message, { status, errorCode, details, hint } = {}) {
@@ -13,8 +14,19 @@ export class EconomicApiError extends Error {
   }
 }
 
-const getBaseUrl = () =>
-  process.env.ECONOMIC_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_BASE_URL;
+const getBaseUrl = () => {
+  const baseUrl =
+    process.env.ECONOMIC_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_BASE_URL;
+
+  if (!ALLOWED_BASE_URL_PATTERN.test(baseUrl)) {
+    throw new EconomicApiError(
+      `Invalid ECONOMIC_BASE_URL: ${baseUrl}. Must match https://restapi.e-conomic.com`,
+      { status: 0, errorCode: "E_INVALID_BASE_URL" }
+    );
+  }
+
+  return baseUrl;
+};
 
 export const validateCredentials = () => {
   const appSecretToken = process.env.ECONOMIC_APP_SECRET_TOKEN?.trim();
@@ -49,6 +61,7 @@ export const request = async (method, path, body) => {
     method,
     headers: buildHeaders(),
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(30000),
   });
 
   if (!response.ok) {
