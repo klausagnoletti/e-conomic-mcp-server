@@ -7,8 +7,8 @@
     "start": "node src/server.js",
     "test:harness": "node scripts/test-harness.js",
     "test": "npm run test:harness",
-    "openapi:download": "node scripts/openapi-download.js"
-    ,"test:sanity": "node scripts/test-sanity.js"
+    "openapi:download": "node scripts/openapi-download.js",
+    "test:sanity": "node scripts/test-sanity.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.6.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
