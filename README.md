@@ -24,6 +24,7 @@ The server reads e-conomic credentials from the environment:
 - `ECONOMIC_AGREEMENT_GRANT_TOKEN` (required)
 - `ECONOMIC_BASE_URL` (optional, defaults to `https://restapi.e-conomic.com`)
 - `ECONOMIC_DEBUG` (optional, set to `true` to emit JSON debug logs to stderr)
+- `ECONOMIC_VALIDATE` (optional, set to `true` to validate requests/responses against the downloaded OpenAPI spec)
 
 You'll find all the information on both tokens you need to get started [here](docs/creating-auth-tokens.md). It's a bit complex but not as boring and annoying as it looks like by first glimpse. Pinky promise!
 
@@ -32,6 +33,11 @@ You'll find all the information on both tokens you need to get started [here](do
 - **Local development**: keep secrets in `.env` and run `npm start` from the repo root so `dotenv` loads them.
 - **Desktop MCP clients**: either start the server from a shell that has `.env` loaded, or pass env variables in the client config if you want the client to spawn the server for you.
 - **CI/shared environments**: use your secret manager (GitHub Actions secrets, etc.) and inject env vars at runtime. Do not commit `.env`.
+
+### OpenAPI validation (optional)
+
+- Download the official spec: `npm run openapi:download` (uses `OPENAPI_URL` if set; defaults to `https://restapi.e-conomic.com/swagger/v1/swagger.json`).
+- Enable runtime validation: set `ECONOMIC_VALIDATE=true`. Requests and responses are checked against the OpenAPI schemas when available. Validation errors return `E_REQUEST_VALIDATION` / `E_RESPONSE_VALIDATION`.
 
 ## Tools
 

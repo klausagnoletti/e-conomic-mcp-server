@@ -1,4 +1,8 @@
 import { logDebug } from "../utils/logger.js";
+import {
+  validateRequestBody,
+  validateResponseBody,
+} from "../utils/openapi-validator.js";
 
 const DEFAULT_BASE_URL = "https://restapi.e-conomic.com";
 const ALLOWED_BASE_URL_PATTERN = /^https:\/\/restapi\.e-conomic\.com(:\d+)?$/;
@@ -57,6 +61,17 @@ export const request = async (method, path, body) => {
   const url = `${baseUrl}${path}`;
   logDebug("request", { method, path });
 
+  if (process.env.ECONOMIC_VALIDATE?.toLowerCase() === "true" && body) {
+    const validation = validateRequestBody(method, path, body);
+    if (!validation.ok) {
+      throw new EconomicApiError("Request validation failed", {
+        status: 0,
+        errorCode: "E_REQUEST_VALIDATION",
+        details: validation.errors,
+      });
+    }
+  }
+
   const response = await fetch(url, {
     method,
     headers: buildHeaders(),
@@ -88,5 +103,23 @@ export const request = async (method, path, body) => {
     return null;
   }
 
-  return response.json();
+  const json = await response.json();
+
+  if (process.env.ECONOMIC_VALIDATE?.toLowerCase() === "true") {
+    const validation = validateResponseBody(
+      method,
+      path,
+      response.status,
+      json
+    );
+    if (!validation.ok) {
+      throw new EconomicApiError("Response validation failed", {
+        status: response.status,
+        errorCode: "E_RESPONSE_VALIDATION",
+        details: validation.errors,
+      });
+    }
+  }
+
+  return json;
 };
