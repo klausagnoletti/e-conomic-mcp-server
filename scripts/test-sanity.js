@@ -79,6 +79,37 @@ const main = async () => {
     // Expected if no journal/tokens.
     console.log("Tool invoked but failed execution (expected):", error?.message);
   }
+  // 18. get_environment_info
+  console.log("\n=== get_environment_info ===");
+  try {
+    const output = await invokeTool(server, "get_environment_info", {});
+    console.log("Output:", output);
+  } catch (error) {
+    console.log("Error:", error?.message);
+  }
+
+  // 19. validate_payload
+  console.log("\n=== validate_payload (valid) ===");
+  try {
+    const output = await invokeTool(server, "validate_payload", {
+      toolName: "hello",
+      arguments: { name: "Tester" }
+    });
+    console.log("Output:", output);
+  } catch (error) {
+    console.log("Error:", error?.message);
+  }
+
+  console.log("\n=== validate_payload (invalid) ===");
+  try {
+    const output = await invokeTool(server, "validate_payload", {
+      toolName: "get_customer",
+      arguments: { customerNumber: "NOT_A_NUMBER" } // Should fail schema
+    });
+    console.log("Output:", output);
+  } catch (error) {
+    console.log("Error:", error?.message);
+  }
 };
 
 main();

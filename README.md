@@ -54,8 +54,9 @@ Tool list:
 - Products: `list_products`, `upsert_product`
 - Draft invoices: `list_invoice_drafts`, `get_invoice_draft`, `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
 - Booked invoices: `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
-- Journals: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`
+- Journals: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`, `book_and_match_receipt`
 - Reference data: `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
+- Utility: `get_environment_info`, `validate_payload`
 
 ### Tool reference
 
@@ -81,6 +82,8 @@ Tool list:
 | Journals | `create_draft_entry` | Create a new journal entry. | `{ "journalNumber": number, "entries": [...] }` | Created entry. |
 | Journals | `attach_pdf_to_entry` | Attach PDF to a voucher. | `{ "journalNumber": number, "accountingYear": string, "voucherNumber": number, "attachment": "base64" }` | Success confirmation. |
 | Journals | `match_booked_entries` | Match booked entries. | `{ "entries": [{ "bookedEntryNumber": number }, ...] }` | Match result. |
+| Utility | `get_environment_info` | Check if environment is Sandbox or Live. | `{}` | `{ "environment": "sandbox"|"live", ... }` |
+| Utility | `validate_payload` | Dry-run validation of tool arguments. | `{ "toolName": string, "arguments": object }` | `{ "valid": boolean, "errors": [...] }` |
 
 ## MCP client setup
 

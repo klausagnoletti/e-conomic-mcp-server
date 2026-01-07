@@ -20,28 +20,57 @@ import { registerAttachPdfToEntryTool } from "./attach-pdf-to-entry.js";
 import { registerMatchBookedEntriesTool } from "./match-booked-entries.js";
 import { registerBookAndMatchReceiptTool } from "./book-and-match-receipt.js";
 
+import { registerGetEnvironmentInfoTool } from "./get-environment-info.js";
+import { registerValidatePayloadTool } from "./validate-payload.js";
+
+// Helper to intercept calls and capture schemas
+const createSchemaTrackingServer = (originalServer) => {
+  const schemas = new Map();
+
+  return {
+    registerTool: (name, config, handler) => {
+      // Store the schema
+      if (config.inputSchema) {
+        schemas.set(name, config.inputSchema);
+      }
+      // Delegate to real server
+      originalServer.registerTool(name, config, handler);
+    },
+    getSchemas: () => schemas
+  };
+};
+
 const registerTools = (server) => {
-  registerHelloTool(server);
-  registerListCustomersTool(server);
-  registerGetCustomerTool(server);
-  registerListProductsTool(server);
-  registerUpsertProductTool(server);
-  registerCreateInvoiceDraftTool(server);
-  registerUpdateInvoiceDraftTool(server);
-  registerUpdateCustomerTool(server);
-  registerListInvoiceDraftsTool(server);
-  registerGetInvoiceDraftTool(server);
-  registerBookInvoiceDraftTool(server);
-  registerListBookedInvoicesTool(server);
-  registerGetBookedInvoiceTool(server);
-  registerDownloadInvoicePdfTool(server);
-  registerListPaymentTermsTool(server);
-  registerListCustomerGroupsTool(server);
-  registerListVatZonesTool(server);
-  registerCreateDraftEntryTool(server);
-  registerAttachPdfToEntryTool(server);
-  registerMatchBookedEntriesTool(server);
-  registerBookAndMatchReceiptTool(server);
+  // Wrap server to capture schemas
+  const trackingServer = createSchemaTrackingServer(server);
+  const schemas = trackingServer.getSchemas();
+
+  registerHelloTool(trackingServer);
+  registerListCustomersTool(trackingServer);
+  registerGetCustomerTool(trackingServer);
+  registerListProductsTool(trackingServer);
+  registerUpsertProductTool(trackingServer);
+  registerCreateInvoiceDraftTool(trackingServer);
+  registerUpdateInvoiceDraftTool(trackingServer);
+  registerUpdateCustomerTool(trackingServer);
+  registerListInvoiceDraftsTool(trackingServer);
+  registerGetInvoiceDraftTool(trackingServer);
+  registerBookInvoiceDraftTool(trackingServer);
+  registerListBookedInvoicesTool(trackingServer);
+  registerGetBookedInvoiceTool(trackingServer);
+  registerDownloadInvoicePdfTool(trackingServer);
+  registerListPaymentTermsTool(trackingServer);
+  registerListCustomerGroupsTool(trackingServer);
+  registerListVatZonesTool(trackingServer);
+  registerCreateDraftEntryTool(trackingServer);
+  registerAttachPdfToEntryTool(trackingServer);
+  registerMatchBookedEntriesTool(trackingServer);
+  registerBookAndMatchReceiptTool(trackingServer);
+
+  // Register safety tools (needs raw server for environment info, tracking server for schema access??)
+  // Actually, validate_payload needs the schemas map.
+  registerGetEnvironmentInfoTool(server); // Doesn't need schema tracking wrapper
+  registerValidatePayloadTool(server, schemas); // Pass the map
 };
 
 export default registerTools;
