@@ -4,6 +4,8 @@ Perfect for anyone who, like me, is more geek than bookkeeper. Finally there is 
 
 ## Getting started
 
+For detailed guides on how to use these tools in common scenarios, see [Workflows](docs/workflows.md) and [AI Testing](docs/ai-testing.md).
+
 Install dependencies:
 
 ```bash
