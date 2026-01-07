@@ -2,6 +2,20 @@
 
 This document describes common workflows for AI agents interacting with the e-conomic MCP server. It is designed to help you, the AI, understand how to chain tools together to accomplish complex accounting tasks.
 
+## Safety Best Practices (RECOMMENDED)
+
+Before executing any state-changing operations (Create, Update, Book, Delete), implementing the following checks is highly recommended:
+
+1.  **Check Environment**: Call `get_environment_info` to verify if you are connected to a **Sandbox/Demo** or **Live** environment.
+    *   *Prompt*: "Am I in a safe sandbox environment?"
+    *   *Action*: If `environment` is "live", explicitly ask the user for confirmation before proceeding with bulk operations or irreversible bookings.
+
+2.  **Validate Payloads**: Use `validate_payload` to dry-run your tool arguments.
+    *   *Why*: To catch formatting errors (invalid numbers, missing required fields) before sending requests to the API.
+    *   *Usage*: Call `validate_payload` with `{ "toolName": "target_tool", "arguments": { ... } }`. If valid, proceed to call `target_tool`.
+
+---
+
 ## 1. Book and Match Receipt (Expense Management)
 
 **Goal:** Process a receipt PDF, book the expense to a cost account, and optionally match it to a bank transaction.
