@@ -52,6 +52,7 @@ Tool list:
 - Products: `list_products`, `upsert_product`
 - Draft invoices: `list_invoice_drafts`, `get_invoice_draft`, `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
 - Booked invoices: `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
+- Journals: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`
 - Reference data: `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
 
 ### Tool reference
@@ -75,6 +76,9 @@ Tool list:
 | Reference data | `list_payment_terms` | List payment terms. | `{ "pageSize": number, "page": number }` | Payment terms collection. |
 | Reference data | `list_customer_groups` | List customer groups. | `{ "pageSize": number, "page": number }` | Customer groups collection. |
 | Reference data | `list_vat_zones` | List VAT zones. | `{ "pageSize": number, "page": number }` | VAT zones collection. |
+| Journals | `create_draft_entry` | Create a new journal entry. | `{ "journalNumber": number, "entries": [...] }` | Created entry. |
+| Journals | `attach_pdf_to_entry` | Attach PDF to a voucher. | `{ "journalNumber": number, "accountingYear": string, "voucherNumber": number, "attachment": "base64" }` | Success confirmation. |
+| Journals | `match_booked_entries` | Match booked entries. | `{ "entries": [{ "bookedEntryNumber": number }, ...] }` | Match result. |
 
 ## MCP client setup
 
