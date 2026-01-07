@@ -18,6 +18,7 @@ import { registerListVatZonesTool } from "./list-vat-zones.js";
 import { registerCreateDraftEntryTool } from "./create-draft-entry.js";
 import { registerAttachPdfToEntryTool } from "./attach-pdf-to-entry.js";
 import { registerMatchBookedEntriesTool } from "./match-booked-entries.js";
+import { registerBookAndMatchReceiptTool } from "./book-and-match-receipt.js";
 
 const registerTools = (server) => {
   registerHelloTool(server);
@@ -40,6 +41,7 @@ const registerTools = (server) => {
   registerCreateDraftEntryTool(server);
   registerAttachPdfToEntryTool(server);
   registerMatchBookedEntriesTool(server);
+  registerBookAndMatchReceiptTool(server);
 };
 
 export default registerTools;

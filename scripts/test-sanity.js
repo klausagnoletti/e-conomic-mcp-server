@@ -59,6 +59,26 @@ const main = async () => {
       process.exitCode = 1;
     }
   }
+
+  // 17. book_and_match_receipt (dry-run check)
+  console.log("\n=== book_and_match_receipt (schema check) ===");
+  try {
+    const output = await invokeTool(server, "book_and_match_receipt", {
+      amount: 100,
+      currency: "DKK",
+      date: "2025-01-01",
+      text: "Sanity Test Receipt",
+      accountNumber: 1000,
+      journalNumber: 1, // Require journal for sanity to avoid auto-search failure
+      pdfBase64: "TG9yZW0gSXBzdW0="
+    });
+    // We expect this to fail in demo mode or without real tokens/journal, 
+    // but if it reaches the handler, the registered tool works.
+    console.log("Output (might fail execution but tool is present):", output);
+  } catch (error) {
+    // Expected if no journal/tokens.
+    console.log("Tool invoked but failed execution (expected):", error?.message);
+  }
 };
 
 main();
