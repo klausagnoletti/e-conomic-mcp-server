@@ -15,6 +15,9 @@ import { registerDownloadInvoicePdfTool } from "./download-invoice-pdf.js";
 import { registerListPaymentTermsTool } from "./list-payment-terms.js";
 import { registerListCustomerGroupsTool } from "./list-customer-groups.js";
 import { registerListVatZonesTool } from "./list-vat-zones.js";
+import { registerCreateDraftEntryTool } from "./create-draft-entry.js";
+import { registerAttachPdfToEntryTool } from "./attach-pdf-to-entry.js";
+import { registerMatchBookedEntriesTool } from "./match-booked-entries.js";
 
 const registerTools = (server) => {
   registerHelloTool(server);
@@ -34,6 +37,9 @@ const registerTools = (server) => {
   registerListPaymentTermsTool(server);
   registerListCustomerGroupsTool(server);
   registerListVatZonesTool(server);
+  registerCreateDraftEntryTool(server);
+  registerAttachPdfToEntryTool(server);
+  registerMatchBookedEntriesTool(server);
 };
 
 export default registerTools;

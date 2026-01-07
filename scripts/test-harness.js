@@ -252,6 +252,43 @@ const main = async () => {
       envHint:
         "Requires ECONOMIC_APP_SECRET_TOKEN and ECONOMIC_AGREEMENT_GRANT_TOKEN",
     },
+    {
+      name: "create_draft_entry",
+      input: {
+        journalNumber: 1,
+        entries: [
+          {
+            accountNumber: 1000,
+            amount: 125,
+            text: "Test entry",
+            date: "2025-01-07",
+            currency: "DKK",
+            voucherNumber: 9999
+          }
+        ]
+      },
+      envHint: "Requires valid journalNumber (check your setup)"
+    },
+    {
+      name: "attach_pdf_to_entry",
+      input: {
+        journalNumber: 1,
+        accountingYear: "2025",
+        voucherNumber: 9999,
+        attachment: "JVBERi0xLg==" // Minimal PDF header base64
+      },
+      envHint: "Requires valid journal entry to attach to"
+    },
+    {
+      name: "match_booked_entries",
+      input: {
+        entries: [
+          { bookedEntryNumber: 100 },
+          { bookedEntryNumber: 101 }
+        ]
+      },
+      envHint: "Requires valid booked entries to match"
+    }
   ];
 
   for (const sample of samples) {
