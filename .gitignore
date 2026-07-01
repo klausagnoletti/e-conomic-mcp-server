@@ -1,3 +1,6 @@
 node_modules/
 .env
 .npm-cache/
+
+# Local MCP config — holds live e-conomic tokens, never commit
+.mcp.json

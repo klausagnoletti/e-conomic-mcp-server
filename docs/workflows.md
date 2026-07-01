@@ -78,7 +78,108 @@ You need to book a monthly salary run or a complex invoice that requires multipl
 
 ---
 
-## 3. Invoice Drafting
+## 3. Payment Reconciliation & Finding Payment Dates
+
+**Goal:** Find payment dates for invoices that show as unpaid in the system but have actually been paid. This is essential for reconciling booked invoices against bank transactions.
+
+**Tools Used:** `list_booked_invoices`, `list_journal_entries`, `get_booked_entry`, `list_bank_transactions`, `match_booked_entries`.
+
+### Scenario
+You have invoices that appear unpaid in the system (showing `remainder > 0`) but the payments have been received and recorded in the daily journal or bank account. You need to:
+1. Identify which invoices are actually paid
+2. Find the payment dates
+3. Match the payment entries to the invoices
+
+### Step-by-Step
+
+1. **Identify Unpaid Invoices**: Call `list_booked_invoices` to retrieve all booked invoices.
+   - Look for invoices with `remainder > 0` (shows unpaid amount)
+   - Note the invoice number, customer, and amount
+
+2. **Search Daily Journal**: Call `list_journal_entries` to find payment entries.
+   - Use `fromDate` and `toDate` to filter by expected payment period
+   - Look for entries matching invoice amounts or customer information
+   - Returns journal entry details including dates and amounts
+
+3. **Get Entry Details**: Call `get_booked_entry` for specific journal entries to see full details.
+   - Confirms payment date, amount, and account information
+   - Helps verify the payment matches the invoice
+
+4. **Search Bank Transactions**: Call `list_bank_transactions` to see bank account activity.
+   - Filter by date range around expected payment dates
+   - Shows all transactions with amounts and dates
+   - Useful when payments may have been processed through the bank
+
+5. **Match Entries**: Call `match_booked_entries` to reconcile the payment against the invoice.
+   - Links the payment entry to the original invoice
+   - Marks the invoice as paid in the system
+
+### Example Prompt
+> "I have two invoices showing as unpaid (#90 and #97) but I believe they were paid in June and September. Can you search the daily journal for payments matching these invoices and show me the payment dates?"
+
+### Tool Calls
+
+**Step 1 - List unpaid invoices:**
+```json
+{
+  "name": "list_booked_invoices",
+  "arguments": {
+    "pagesize": 100
+  }
+}
+```
+
+**Step 2 - Search daily journal for payments (June 2025):**
+```json
+{
+  "name": "list_journal_entries",
+  "arguments": {
+    "journalNumber": 1,
+    "fromDate": "2025-06-01",
+    "toDate": "2025-06-30",
+    "pagesize": 50
+  }
+}
+```
+
+**Step 3 - Get details of specific payment entry:**
+```json
+{
+  "name": "get_booked_entry",
+  "arguments": {
+    "bookedEntryNumber": 12345
+  }
+}
+```
+
+**Step 4 - List bank transactions (September 2025):**
+```json
+{
+  "name": "list_bank_transactions",
+  "arguments": {
+    "fromDate": "2025-09-01",
+    "toDate": "2025-09-30",
+    "pagesize": 50
+  }
+}
+```
+
+**Step 5 - Match payment to invoice:**
+```json
+{
+  "name": "match_booked_entries",
+  "arguments": {
+    "entries": [
+      { "bookedEntryNumber": 90 },
+      { "bookedEntryNumber": 12345 }
+    ]
+  }
+}
+```
+
+---
+
+## 4. Invoice Drafting
 
 **Goal:** Create and send a sales invoice.
 

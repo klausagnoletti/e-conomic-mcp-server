@@ -19,6 +19,9 @@ import { registerCreateDraftEntryTool } from "./create-draft-entry.js";
 import { registerAttachPdfToEntryTool } from "./attach-pdf-to-entry.js";
 import { registerMatchBookedEntriesTool } from "./match-booked-entries.js";
 import { registerBookAndMatchReceiptTool } from "./book-and-match-receipt.js";
+import { registerListJournalEntriesTools } from "./list-journal-entries.js";
+import { registerGetBookedEntryTool } from "./get-booked-entry.js";
+import { registerListBankTransactionsTools } from "./list-bank-transactions.js";
 
 import { registerGetEnvironmentInfoTool } from "./get-environment-info.js";
 import { registerValidatePayloadTool } from "./validate-payload.js";
@@ -66,6 +69,9 @@ const registerTools = (server) => {
   registerAttachPdfToEntryTool(trackingServer);
   registerMatchBookedEntriesTool(trackingServer);
   registerBookAndMatchReceiptTool(trackingServer);
+  registerListJournalEntriesTools(trackingServer);
+  registerGetBookedEntryTool(trackingServer);
+  registerListBankTransactionsTools(trackingServer);
 
   // Register safety tools (needs raw server for environment info, tracking server for schema access??)
   // Actually, validate_payload needs the schemas map.

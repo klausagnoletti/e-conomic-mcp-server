@@ -58,6 +58,12 @@ const newCustomerSchema = z.object({
     .positive()
     .optional()
     .describe("VAT zone number"),
+  layoutNumber: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Layout number for invoices"),
   address: z.string().max(500).optional(),
   zip: z.string().max(20).optional(),
   city: z.string().max(100).optional(),
@@ -132,23 +138,15 @@ const ensureCustomer = async ({
       customerNumber,
       name: newCustomer.name,
       currency: (newCustomer.currency ?? currency)?.toUpperCase(),
+      customerGroup: {
+        customerGroupNumber: newCustomer.customerGroupNumber ?? 1,
+      },
+      paymentTerms: {
+        paymentTermsNumber: newCustomer.paymentTermsNumber ?? 1,
+      },
+      vatZone: { vatZoneNumber: newCustomer.vatZoneNumber ?? 1 },
+      layout: { layoutNumber: newCustomer.layoutNumber ?? 23 },
     };
-
-    if (newCustomer.paymentTermsNumber) {
-      payload.paymentTerms = {
-        paymentTermsNumber: newCustomer.paymentTermsNumber,
-      };
-    }
-
-    if (newCustomer.customerGroupNumber) {
-      payload.customerGroup = {
-        customerGroupNumber: newCustomer.customerGroupNumber,
-      };
-    }
-
-    if (newCustomer.vatZoneNumber) {
-      payload.vatZone = { vatZoneNumber: newCustomer.vatZoneNumber };
-    }
 
     const optionalFields = [
       "address",
@@ -218,6 +216,30 @@ export const registerCreateInvoiceDraftTool = (server) => {
         paymentTermsNumber: z.number().int().positive().optional(),
         recipientName: z.string().min(1).optional(),
         recipientVatZoneNumber: z.number().int().positive().optional(),
+        recipientAddress: z.string().max(500).optional(),
+        recipientZip: z.string().max(20).optional(),
+        recipientCity: z.string().max(100).optional(),
+        recipientCountry: z.string().max(100).optional(),
+        recipientAttentionContactNumber: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Customer contact number for the attention line"),
+        notesHeading: z.string().max(250).optional().describe("Invoice heading"),
+        notesTextLine1: z.string().max(1000).optional().describe("Notes text line 1"),
+        notesTextLine2: z.string().max(1000).optional().describe("Notes text line 2"),
+        referencesOther: z
+          .string()
+          .max(250)
+          .optional()
+          .describe("Other reference (e.g. PO number)"),
+        referencesCustomerContactNumber: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Customer contact number for the references block"),
         dueDate: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -235,6 +257,16 @@ export const registerCreateInvoiceDraftTool = (server) => {
       paymentTermsNumber,
       recipientName,
       recipientVatZoneNumber,
+      recipientAddress,
+      recipientZip,
+      recipientCity,
+      recipientCountry,
+      recipientAttentionContactNumber,
+      notesHeading,
+      notesTextLine1,
+      notesTextLine2,
+      referencesOther,
+      referencesCustomerContactNumber,
       dueDate,
     }) => {
       try {
@@ -289,6 +321,39 @@ export const registerCreateInvoiceDraftTool = (server) => {
         if (recipientVatZoneNumber) {
           payload.recipient.vatZone = { vatZoneNumber: recipientVatZoneNumber };
         }
+
+        if (recipientAddress) {
+          payload.recipient.address = recipientAddress;
+        }
+
+        if (recipientZip) {
+          payload.recipient.zip = recipientZip;
+        }
+
+        if (recipientCity) {
+          payload.recipient.city = recipientCity;
+        }
+
+        if (recipientCountry) {
+          payload.recipient.country = recipientCountry;
+        }
+
+        if (recipientAttentionContactNumber) {
+          payload.recipient.attention = { customerContactNumber: recipientAttentionContactNumber };
+        }
+
+        const notes = {};
+        if (notesHeading) notes.heading = notesHeading;
+        if (notesTextLine1) notes.textLine1 = notesTextLine1;
+        if (notesTextLine2) notes.textLine2 = notesTextLine2;
+        if (Object.keys(notes).length > 0) payload.notes = notes;
+
+        const references = {};
+        if (referencesOther) references.other = referencesOther;
+        if (referencesCustomerContactNumber) {
+          references.customerContact = { customerContactNumber: referencesCustomerContactNumber };
+        }
+        if (Object.keys(references).length > 0) payload.references = references;
 
         if (dueDate) {
           payload.dueDate = dueDate;

@@ -22,9 +22,15 @@ export const registerListInvoiceDraftsTool = (server) => {
           .min(1)
           .optional()
           .describe("Page number to fetch (default 1)."),
+        customerNumber: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Filter by customer number."),
       }),
     },
-    async ({ pageSize, page }) => {
+    async ({ pageSize, page, customerNumber }) => {
       try {
         const resolvedPageSize = pageSize ?? 100;
         const resolvedPage = page ?? 1;
@@ -33,6 +39,10 @@ export const registerListInvoiceDraftsTool = (server) => {
           pagesize: String(resolvedPageSize),
           skippages: String(skipPages),
         });
+
+        if (customerNumber) {
+          query.set("filter", `customer.customerNumber$eq:${customerNumber}`);
+        }
 
         const data = await request("GET", `/invoices/drafts?${query.toString()}`);
         return {

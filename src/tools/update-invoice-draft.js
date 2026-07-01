@@ -94,6 +94,30 @@ export const registerUpdateInvoiceDraftTool = (server) => {
           .transform((s) => s.trim())
           .optional(),
         recipientVatZoneNumber: z.number().int().positive().optional(),
+        recipientAddress: z.string().max(500).optional(),
+        recipientZip: z.string().max(20).optional(),
+        recipientCity: z.string().max(100).optional(),
+        recipientCountry: z.string().max(100).optional(),
+        recipientAttentionContactNumber: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Customer contact number for the attention line"),
+        notesHeading: z.string().max(250).optional().describe("Invoice heading"),
+        notesTextLine1: z.string().max(1000).optional().describe("Notes text line 1"),
+        notesTextLine2: z.string().max(1000).optional().describe("Notes text line 2"),
+        referencesOther: z
+          .string()
+          .max(250)
+          .optional()
+          .describe("Other reference (e.g. PO number)"),
+        referencesCustomerContactNumber: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Customer contact number for the references block"),
         lines: z.array(lineSchema).min(1).optional().describe("Invoice lines"),
       }),
     },
@@ -106,6 +130,16 @@ export const registerUpdateInvoiceDraftTool = (server) => {
       layoutNumber,
       recipientName,
       recipientVatZoneNumber,
+      recipientAddress,
+      recipientZip,
+      recipientCity,
+      recipientCountry,
+      recipientAttentionContactNumber,
+      notesHeading,
+      notesTextLine1,
+      notesTextLine2,
+      referencesOther,
+      referencesCustomerContactNumber,
       lines,
     }) => {
       try {
@@ -125,6 +159,14 @@ export const registerUpdateInvoiceDraftTool = (server) => {
 
         if (current.dueDate) {
           payload.dueDate = current.dueDate;
+        }
+
+        if (current.notes) {
+          payload.notes = current.notes;
+        }
+
+        if (current.references) {
+          payload.references = current.references;
         }
 
         if (date) {
@@ -147,7 +189,16 @@ export const registerUpdateInvoiceDraftTool = (server) => {
           payload.layout = { layoutNumber };
         }
 
-        if (recipientName || recipientVatZoneNumber) {
+        const recipientFieldsProvided =
+          recipientName ||
+          recipientVatZoneNumber ||
+          recipientAddress ||
+          recipientZip ||
+          recipientCity ||
+          recipientCountry ||
+          recipientAttentionContactNumber;
+
+        if (recipientFieldsProvided) {
           payload.recipient = payload.recipient ?? {};
         }
 
@@ -157,6 +208,41 @@ export const registerUpdateInvoiceDraftTool = (server) => {
 
         if (recipientVatZoneNumber) {
           payload.recipient.vatZone = { vatZoneNumber: recipientVatZoneNumber };
+        }
+
+        if (recipientAddress) {
+          payload.recipient.address = recipientAddress;
+        }
+
+        if (recipientZip) {
+          payload.recipient.zip = recipientZip;
+        }
+
+        if (recipientCity) {
+          payload.recipient.city = recipientCity;
+        }
+
+        if (recipientCountry) {
+          payload.recipient.country = recipientCountry;
+        }
+
+        if (recipientAttentionContactNumber) {
+          payload.recipient.attention = { customerContactNumber: recipientAttentionContactNumber };
+        }
+
+        if (notesHeading || notesTextLine1 || notesTextLine2) {
+          payload.notes = payload.notes ?? {};
+          if (notesHeading) payload.notes.heading = notesHeading;
+          if (notesTextLine1) payload.notes.textLine1 = notesTextLine1;
+          if (notesTextLine2) payload.notes.textLine2 = notesTextLine2;
+        }
+
+        if (referencesOther || referencesCustomerContactNumber) {
+          payload.references = payload.references ?? {};
+          if (referencesOther) payload.references.other = referencesOther;
+          if (referencesCustomerContactNumber) {
+            payload.references.customerContact = { customerContactNumber: referencesCustomerContactNumber };
+          }
         }
 
         if (lines) {

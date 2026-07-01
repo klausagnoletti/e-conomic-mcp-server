@@ -54,7 +54,7 @@ Tool list:
 - Products: `list_products`, `upsert_product`
 - Draft invoices: `list_invoice_drafts`, `get_invoice_draft`, `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
 - Booked invoices: `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
-- Journals: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`, `book_and_match_receipt`
+- Journals: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`, `book_and_match_receipt`, `list_journal_entries`, `get_booked_entry`, `list_bank_transactions`
 - Reference data: `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
 - Utility: `get_environment_info`, `validate_payload`
 
@@ -82,6 +82,9 @@ Tool list:
 | Journals | `create_draft_entry` | Create a new journal entry. | `{ "journalNumber": number, "entries": [...] }` | Created entry. |
 | Journals | `attach_pdf_to_entry` | Attach PDF to a voucher. | `{ "journalNumber": number, "accountingYear": string, "voucherNumber": number, "attachment": "base64" }` | Success confirmation. |
 | Journals | `match_booked_entries` | Match booked entries. | `{ "entries": [{ "bookedEntryNumber": number }, ...] }` | Match result. |
+| Journals | `list_journal_entries` | Query daily journal with optional date filtering. | `{ "journalNumber": number, "fromDate": "YYYY-MM-DD", "toDate": "YYYY-MM-DD", "skippages": number, "pagesize": number }` | Paginated journal entries. |
+| Journals | `get_booked_entry` | Fetch details of a specific booked journal entry. | `{ "bookedEntryNumber": number }` | Booked entry details. |
+| Journals | `list_bank_transactions` | Fetch bank transactions from integrated bank account. | `{ "accountNumber": number, "fromDate": "YYYY-MM-DD", "toDate": "YYYY-MM-DD", "skippages": number, "pagesize": number }` | Bank transactions with dates and amounts. |
 | Utility | `get_environment_info` | Check if environment is Sandbox or Live. | `{}` | `{ "environment": "sandbox"|"live", ... }` |
 | Utility | `validate_payload` | Dry-run validation of tool arguments. | `{ "toolName": string, "arguments": object }` | `{ "valid": boolean, "errors": [...] }` |
 

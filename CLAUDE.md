@@ -11,10 +11,13 @@ This is an MCP (Model Context Protocol) server that provides AI assistants with 
 The server requires e-conomic API credentials:
 - `ECONOMIC_APP_SECRET_TOKEN` (required)
 - `ECONOMIC_AGREEMENT_GRANT_TOKEN` (required)
-- `ECONOMIC_BASE_URL` (optional, defaults to `https://restapi.e-conomic.com`)
-- `ECONOMIC_DEBUG` (optional, set to `true` to emit JSON debug logs to stderr)
 
-For local development, credentials can be stored in a `.env` file at the repository root.
+Optional environment variables:
+- `ECONOMIC_BASE_URL` (defaults to `https://restapi.e-conomic.com`)
+- `ECONOMIC_DEBUG` (set to `true` to emit JSON debug logs to stderr)
+- `ECONOMIC_VALIDATE` (set to `true` to validate requests/responses against OpenAPI schema; requires running `npm run openapi:download` first)
+
+For local development, credentials can be stored in a `.env` file at the repository root. For CI/shared environments, inject credentials at runtime via your secret manager.
 
 ## Development Commands
 
@@ -30,7 +33,21 @@ npm test
 npm run test:harness
 ```
 
-The test harness (`scripts/test-harness.js`) invokes all registered tools with sample data to verify functionality. It supports placeholder replacement (`$lastDraft`, `$lastBooked`) to chain dependent operations.
+The test harness (`scripts/test-harness.js`) invokes all registered tools with sample data to verify functionality. It supports placeholder replacement (`$lastDraft`, `$lastBooked`) to chain dependent operations. See `docs/test-harness.md` for detailed information.
+
+### Quick sanity check
+```bash
+npm run test:sanity
+```
+
+Runs a basic connectivity test using demo tokens if credentials are not set. Useful for verifying the server can reach the e-conomic API.
+
+### OpenAPI validation (optional)
+```bash
+npm run openapi:download
+```
+
+Downloads the official e-conomic OpenAPI specification to the repository. When `ECONOMIC_VALIDATE=true` is set, requests and responses are automatically validated against the schema. Validation errors return `E_REQUEST_VALIDATION` or `E_RESPONSE_VALIDATION` error codes.
 
 ## Architecture
 
@@ -61,13 +78,23 @@ Tools should catch `EconomicApiError` and return error details in MCP format. Us
 - `logDebug(message, fields)` - Only logs when `ECONOMIC_DEBUG=true`
 - `logEvent(level, message, fields)` - Logs at any level
 
+### Testing & Validation
+- `src/utils/openapi-validator.js` - Validates requests/responses against downloaded OpenAPI spec
+- `src/utils/openapi-loader.js` - Loads and caches OpenAPI schemas from file
+- Test harness supports placeholder replacement to chain dependent operations:
+  - `$lastDraft` - Returns the draft invoice number from the previous `create_invoice_draft` call
+  - `$lastBooked` - Returns the booked invoice number from the previous `book_invoice_draft` call
+- Schema tracking in `src/tools/index.js` captures Zod schemas for validation tool usage
+
 ### Tool Categories
 - **Connectivity**: `hello` (sanity check)
 - **Customers**: `list_customers`, `get_customer`, `update_customer`
 - **Products**: `list_products`, `upsert_product`
 - **Draft invoices**: `list_invoice_drafts`, `get_invoice_draft`, `create_invoice_draft`, `update_invoice_draft`, `book_invoice_draft`
 - **Booked invoices**: `list_booked_invoices`, `get_booked_invoice`, `download_invoice_pdf`
+- **Journals**: `create_draft_entry`, `attach_pdf_to_entry`, `match_booked_entries`, `book_and_match_receipt`, `list_journal_entries`, `get_booked_entry`, `list_bank_transactions`
 - **Reference data**: `list_payment_terms`, `list_customer_groups`, `list_vat_zones`
+- **Utility/Safety**: `get_environment_info`, `validate_payload`
 
 ### Special Tool Behaviors
 
@@ -79,6 +106,41 @@ Tools should catch `EconomicApiError` and return error details in MCP format. Us
 **upsert_product**:
 - `productGroupNumber` is required when creating a new product
 - Updates existing product if `productNumber` already exists
+
+### Journal Tools
+
+**create_draft_entry**, **attach_pdf_to_entry**, **match_booked_entries**, **book_and_match_receipt**:
+- Tools for managing journal entries and matching receipts to accounting records
+- Support attaching PDF documents to vouchers for receipt tracking
+- Provide matching capabilities to reconcile booked entries
+
+**list_journal_entries**:
+- Query the daily journal (daglig journal) with optional date range filtering
+- Parameters: journalNumber, fromDate, toDate, pagination (skippages, pagesize)
+- Useful for finding payment entries and reconciling against invoices
+
+**get_booked_entry**:
+- Retrieve detailed information about a specific booked journal entry (voucher)
+- Shows payment details, amounts, and transaction dates
+- Essential for verifying payment information
+
+**list_bank_transactions**:
+- Fetch bank transactions from integrated bank account
+- Supports date range filtering and pagination
+- Shows transaction dates and amounts for payment reconciliation
+- Parameters: accountNumber, fromDate, toDate, pagination (skippages, pagesize)
+
+### Utility & Safety Tools
+
+**get_environment_info**:
+- Returns the current environment (Sandbox or Live)
+- Useful for AI agents to determine safe operation scope
+
+**validate_payload**:
+- Dry-run validation of any tool's input arguments against its Zod schema
+- Returns validation errors without executing the tool
+- Helps catch malformed inputs before tool invocation
+- Usage: `{ "toolName": "create_invoice_draft", "arguments": {...} }`
 
 ## Adding New Tools
 
@@ -115,3 +177,13 @@ Tools should catch `EconomicApiError` and return error details in MCP format. Us
 2. Import and register in `src/tools/index.js`
 
 3. Add test case to `scripts/test-harness.js`
+
+## Documentation
+
+User-facing documentation is located in the `docs/` directory:
+- **`docs/workflows.md`** - Common use case workflows and examples
+- **`docs/ai-testing.md`** - Guide for testing tools with AI models
+- **`docs/test-harness.md`** - Detailed test harness documentation
+- **`docs/creating-auth-tokens.md`** - How to create and manage e-conomic API credentials
+
+These guides provide practical examples and best practices for using the MCP server.
