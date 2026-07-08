@@ -19,6 +19,7 @@ import { registerCreateDraftEntryTool } from "./create-draft-entry.js";
 import { registerAttachPdfToEntryTool } from "./attach-pdf-to-entry.js";
 import { registerMatchBookedEntriesTool } from "./match-booked-entries.js";
 import { registerBookAndMatchReceiptTool } from "./book-and-match-receipt.js";
+import { registerBookCustomerPaymentTool } from "./book-customer-payment.js";
 import { registerListJournalEntriesTools } from "./list-journal-entries.js";
 import { registerGetBookedEntryTool } from "./get-booked-entry.js";
 import { registerListBankTransactionsTools } from "./list-bank-transactions.js";
@@ -69,6 +70,7 @@ const registerTools = (server) => {
   registerAttachPdfToEntryTool(trackingServer);
   registerMatchBookedEntriesTool(trackingServer);
   registerBookAndMatchReceiptTool(trackingServer);
+  registerBookCustomerPaymentTool(trackingServer);
   registerListJournalEntriesTools(trackingServer);
   registerGetBookedEntryTool(trackingServer);
   registerListBankTransactionsTools(trackingServer);
